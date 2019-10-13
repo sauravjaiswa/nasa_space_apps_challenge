@@ -7,10 +7,15 @@ Created on Sat Oct 12 12:52:45 2019
 
 import os
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.vq import kmeans2, whiten
 import math
 
-os.chdir("C:/Users/mr_ro/Desktop/NASA")
-indiaCSV = pd.read_csv("india_copy.csv")
+os.chdir("C:/Users/mr_ro/Documents/GitHub/nasa_space_apps_challenge/PatternRecog")
+indiaCSV = pd.read_csv("india_v2.csv")
+coordinates = np.array(indiaCSV.loc[:,"latitude":"longitude"])
+os.chdir("C:/Users/mr_ro/Documents/GitHub/nasa_space_apps_challenge/PatternRecog/REF_CSV_0_499")
 """
 defining the coordinate which we are going to use as reference
 """
@@ -19,33 +24,8 @@ latRef =0# indiaCSV.loc[row,"latitude"]
 longRef =0# indiaCSV.loc[row,"longitude"]
 
 """
-xDiff = yDiff = 0.0
-xList = indiaCSV.loc[:,"latitude"]
-yList = indiaCSV.loc[:,"longitude"]
-coordList = indiaCSV.loc[:,"latitude":"longitude"]
-print("READY")
+#method1 to print several csv files for ref coordinates
 
-i = 0
-latTemp = longTemp = 0
-distTemp = 0
-distMin = 1000
-indexMin = 0
-for i in range(1,len(coordList)) : 
-    latTemp = coordList.loc[i,"latitude"]
-    #longTemp = coordList.loc[i,"longitude"]
-    xDiff = (latRef - latTemp)**2
-    #yDiff = (longRef - longTemp)**2
-    distTemp = xDiff
-    if distTemp <= distMin:
-        print(distTemp," ", i)
-        indexMin = i
-        distMin = distTemp
-
-print(indexMin)
-"""
-"""
-new method
-"""
 distRad = math.sqrt(0.0019)
 print("distRad",distRad)
 xDiff = yDiff = 0.0
@@ -57,28 +37,17 @@ i = 0
 j = 0
 latTemp = longTemp = 0
 distTemp = 0
-df = pd.DataFrame({"latitude":[], "longitude":[]}) 
-for i in range(0,50):
+for i in range(0,500):
     row = i
     latRef = indiaCSV.loc[row,"latitude"]	
     longRef = indiaCSV.loc[row,"longitude"]
     print("REF COORD: INDEX ",i," = ",latRef," ",longRef)
     print("")
     #missing here
-    """
-    if i!=0:
-        emptyDict = {'latitude': [-1], 'longitude': [-1]}
-        indexDf = pd.DataFrame(emptyDict)
-        df = df.append(indexDf)
-    """ 
-    df = df.append(pd.DataFrame({"latitude":[0000], "longitude":[0000]}) )
-    indexDict = {'latitude': [latRef] , 'longitude': [longRef]}
-    indexDf = pd.DataFrame(indexDict)
-    df = df.append(indexDf)
     
     
     
-    
+    df = pd.DataFrame({"latitude":[], "longitude":[]})     
     for j in range(0,500) : 
         if j!=i:
             latTemp = coordList.loc[j,"latitude"]
@@ -86,22 +55,80 @@ for i in range(0,50):
             xDiff = (latRef - latTemp)**2
             yDiff = (longRef - longTemp)**2
             distTemp = math.sqrt(xDiff+yDiff)
+            
             if distTemp <= distRad:
                 print(coordList.iloc[j,:])
                 series = coordList.iloc[j,:]
-                #print(type(series))
-                df = df.append(series) # appending in temp dataframe
+                df = df.append(series) #appending in temp dataframe
                 print(" ")
+    
+    name = "REF_"+str(i)+".csv"
+    df.to_csv(name)            
     print("DONE")
     print("")
     #df = df.append(pd.DataFrame({"latitude":[], "longitude":[]}) )
-    df = df.append(pd.DataFrame({"latitude":[0000], "longitude":[0000]}) )
+"""
+"""
+coordinates = np.array(indiaCSV.loc[:,"latitude":"longitude"])
+x, y = kmeans2(whiten(coordinates),)
+kmeans2()
+"""
 
-name = str("INDEX.csv")
-df.to_csv(name)
-"""
-creating dataframe
-"""
+def funcUserData():
+    userLat = float(input("Enter the latitude"))
+    userLong = float(input("Enter the Longitude"))
+    userMonth = float(input("Enter the Month"))
+    
+    userDataList = [userLat,userLong,userMonth]
+    return userDataList
+
+def funcFindCoords(userDataList):
+    areaList = []
+    distRad = math.sqrt(0.0019)
+    userCoord = userDataList[0:2]
+    distTemp = 0
+    for i in range(0,len(coordinates)):
+        latTemp = coordinates[i][0]
+        longTemp = coordinates[i][1]
+        distTemp = math.sqrt((latTemp - userCoord[0])**2 + (longTemp - userCoord[1])**2)
+        if distTemp <= distRad:
+            areaList.append([i,coordinates[i][0],coordinates[i][1]])
+    
+    return areaList
+
+def funcFindProb(indexList,userDataList):
+    
+    prob = 0.00
+    monthCounter = 0
+    monthUser = userDataList[2]
+    for index in indexList:
+        monthTemp = indiaCSV.loc[index,"months"]
+        if monthTemp == monthUser:
+            monthCounter = monthCounter + 1
+    
+    prob = monthCounter / len(indexList)
+    
+    
+    return prob
+                
+
+
+
+#calling part of the code
+for j in range(0,500):
+    
+    userDataList =  [indiaCSV.loc[j,"latitude"],indiaCSV.loc[j,"longitude"],indiaCSV.loc[j,"months"]]     #funcUserData()
+    areaList = funcFindCoords(userDataList)
+    #print(areaList)
+    
+    indexList = []
+    for i  in areaList:
+        indexList.append(i[0])
+    
+    prob = funcFindProb(indexList,userDataList)
+    print("index ",j,": Prob = ",prob*100," %")
+
+
 
 
 
