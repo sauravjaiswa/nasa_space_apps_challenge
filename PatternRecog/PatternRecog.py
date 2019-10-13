@@ -11,11 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.cluster.vq import kmeans2, whiten
 import math
+import requests
 
 os.chdir("C:/Users/mr_ro/Documents/GitHub/nasa_space_apps_challenge/PatternRecog")
 indiaCSV = pd.read_csv("india_v2.csv")
 coordinates = np.array(indiaCSV.loc[:,"latitude":"longitude"])
-os.chdir("C:/Users/mr_ro/Documents/GitHub/nasa_space_apps_challenge/PatternRecog/REF_CSV_0_499")
 """
 defining the coordinate which we are going to use as reference
 """
@@ -113,7 +113,7 @@ def funcFindProb(indexList,userDataList):
                 
 
 
-
+"""
 #calling part of the code
 for j in range(0,500):
     
@@ -128,8 +128,27 @@ for j in range(0,500):
     prob = funcFindProb(indexList,userDataList)
     print("index ",j,": Prob = ",prob*100," %")
 
+"""
+
+userDataList = [30.322,76.609,10]     #funcUserData()
+areaList = funcFindCoords(userDataList)
+#print(areaList)
+indexList = []
+for i  in areaList:
+    indexList.append(i[0])
+    
+prob = funcFindProb(indexList,userDataList)
+print("Prob = ",prob*100," %")
+
+coordDF = pd.DataFrame(areaList)
+coordDF.to_csv("area.csv",index = False)
 
 
+
+url='https://firms.modaps.eosdis.nasa.gov/data/active_fire/c6/csv/MODIS_C6_SouthEast_Asia_24h.csv'
+response = requests.get(url)
+with open(os.path.join("downloaded_data.csv"), 'wb') as f:
+    f.write(response.content)
 
 
 
