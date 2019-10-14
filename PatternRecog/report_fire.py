@@ -15,13 +15,11 @@ Created on Sat Oct 12 12:52:45 2019
 import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.cluster.vq import kmeans2, whiten
 import math
 import requests
 
 os.chdir("C:/Users/mr_ro/Documents/GitHub/nasa_space_apps_challenge/PatternRecog")
-url='https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs/csv/VNP14IMGTDL_NRT_USA_contiguous_and_Hawaii_24h.csv'
+url='https://firms.modaps.eosdis.nasa.gov/data/active_fire/viirs/csv/VNP14IMGTDL_NRT_South_Asia_24h.csv'
 response = requests.get(url)
 with open(os.path.join("downloaded_data.csv"), 'wb') as f:
     f.write(response.content)
@@ -72,8 +70,16 @@ for j in range(0,500):
     print("index ",j,": Prob = ",prob*100," %")
 
 """
+"""
+reading the current coordinate of user
+"""
+test = pd.read_csv("test.csv")
+currentCoord = [test.iloc[0,0], test.iloc[0,1]]
 
-userDataList = [34.328,-118.545,10]     #funcUserData()
+"""
+passing the user coordinate from read data using the test file
+"""
+userDataList = currentCoord    #funcUserData()
 areaList = funcFindCoords(userDataList)
 #print(areaList)
 indexList = []
@@ -82,6 +88,18 @@ for i  in areaList:
 
 coordDF = pd.DataFrame(areaList)
 coordDF.to_csv("area.csv",index = False)
+#print(coordDF.iloc[:,3])
+
+minDis = coordDF.loc[0,3]
+iMin = 0
+for i in range(0,len(coordDF)):
+    if coordDF.loc[i,3]< minDis:
+        iMin = i
+        minDis = coordDF.loc[i,3]
+
+
+#coordDF.loc[[iMin]].to_csv("fire_at_min_dis.csv",index = False) #for printing only the coordinates and distance
+df.loc[[coordDF.loc[iMin,0]]].to_csv("fire_at_min_dis.csv",index = False) #to print all the details of that fire
 
 
 
